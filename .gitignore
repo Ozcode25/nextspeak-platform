@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+*.tsbuildinfo
+
+# Vercel
+.vercel/
+
+# Environment files — secrets must NEVER be committed
+.env
+.env.local
+.env.*.local
+
+# Keep the documented example file tracked
+!.env.example
+
+# Logs and OS files
+npm-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
