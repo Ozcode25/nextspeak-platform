@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 export function Footer() {
@@ -7,10 +8,16 @@ export function Footer() {
         <div className="space-y-3">
           <Link href="/" className="flex items-center gap-2" aria-label="NextSpeak home">
             <span
-              className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-600 text-white"
+              className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-black/5 dark:ring-white/10"
               aria-hidden="true"
             >
-              NS
+              <Image
+                src="/icon-152.png"
+                alt=""
+                width={36}
+                height={36}
+                className="h-full w-full object-contain"
+              />
             </span>
             <span className="font-display text-lg font-bold text-gray-900 dark:text-white">NextSpeak</span>
           </Link>
