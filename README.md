@@ -136,7 +136,7 @@ No push notifications, no background sync, and no analytics are included.
 
 | Variable | Required | Purpose |
 |----------|----------|---------|
-| `NEXT_PUBLIC_APP_URL` | No | Canonical URL used for SEO/social-share metadata. Defaults to `https://nextspeak.vercel.app`. |
+| `NEXT_PUBLIC_APP_URL` | No | Canonical URL used for SEO/social-share metadata. Defaults to `https://nextspeak-platform.vercel.app`. |
 
 `.env.local` is git-ignored. Never commit secrets.
 

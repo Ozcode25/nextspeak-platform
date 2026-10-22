@@ -14,7 +14,7 @@ const inter = Inter({
   display: 'swap',
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nextspeak.vercel.app';
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://nextspeak-platform.vercel.app';
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
