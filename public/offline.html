@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>You're offline | NextSpeak</title>
+    <style>
+      :root { color-scheme: light dark; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        background: #f8fafc;
+        color: #0f172a;
+        padding: 24px;
+      }
+      @media (prefers-color-scheme: dark) {
+        body { background: #020617; color: #e2e8f0; }
+      }
+      .card {
+        max-width: 28rem;
+        text-align: center;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 32px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+      }
+      @media (prefers-color-scheme: dark) {
+        .card { background: #0f172a; border-color: #1e293b; }
+      }
+      .icon { font-size: 3rem; line-height: 1; }
+      h1 { font-size: 1.5rem; margin: 16px 0 8px; }
+      p { margin: 0 0 20px; color: #475569; line-height: 1.6; }
+      @media (prefers-color-scheme: dark) { p { color: #94a3b8; } }
+      a.button {
+        display: inline-block;
+        background: #0284c7;
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 600;
+        border-radius: 10px;
+        padding: 12px 20px;
+      }
+      a.button:hover { background: #0369a1; }
+      a.button:focus-visible { outline: 3px solid #38bdf8; outline-offset: 2px; }
+    </style>
+  </head>
+  <body>
+    <main class="card">
+      <div class="icon" aria-hidden="true">📶</div>
+      <h1>You’re offline</h1>
+      <p>
+        This page hasn’t been saved on your device yet. Check your internet
+        connection and try again — lessons you already opened will keep working offline.
+      </p>
+      <a class="button" href="/">Try again</a>
+    </main>
+  </body>
+</html>

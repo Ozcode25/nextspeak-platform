@@ -1,28 +1,12 @@
 /** @type {import('next').NextConfig} */
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-  buildExcludes: [/middleware-manifest\.json$/],
-});
-
 const nextConfig = {
+  // Fully static site — deployable on any static host (Vercel serves ./out).
+  output: 'export',
   reactStrictMode: true,
   images: {
-    domains: ['localhost', 'your-supabase-project.supabase.co'],
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '*.supabase.co',
-      },
-    ],
-  },
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '2mb',
-    },
+    // Static export cannot use the Next.js image optimizer.
+    unoptimized: true,
   },
 };
 
-module.exports = withPWA(nextConfig);
+module.exports = nextConfig;
