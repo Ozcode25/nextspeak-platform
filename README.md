@@ -88,7 +88,7 @@ nextspeak-platform/
 │   ├── content/lessons.ts              # ★ ALL lesson + quiz content
 │   └── lib/progress.ts                 # Progress storage logic, PASSING_SCORE = 70
 ├── next.config.js        # output: 'export' (static site)
-├── vercel.json           # buildCommand: next build, outputDirectory: out
+├── vercel.json           # buildCommand: next build (Output Directory stays at the Next.js default)
 ├── .env.example          # Optional variables (none required)
 └── supabase-schema.sql   # Legacy reference only (see below)
 ```
@@ -160,10 +160,10 @@ changes to push.)
 
 1. Open [vercel.com/new](https://vercel.com/new) and sign in with GitHub.
 2. Select the **nextspeak-platform** repository → **Import**.
-3. Vercel auto-detects **Next.js**; `vercel.json` already sets:
-   - **Build Command:** `next build`
-   - **Output Directory:** `out`
-   Leave the defaults as-is. No environment variables need to be added.
+3. Vercel auto-detects **Next.js**; `vercel.json` already sets the **Build Command** to
+   `next build`. Leave all settings as-is (the Output Directory must stay at the Next.js
+   default — do **not** point it to `out`; Vercel's builder detects the static export itself).
+   No environment variables need to be added.
 4. Click **Deploy**. Wait for the build to finish (≈1 minute).
 
 ### 3. Done
