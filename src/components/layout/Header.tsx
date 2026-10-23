@@ -6,16 +6,20 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { BookOpen, Home, LineChart, Menu, X } from 'lucide-react';
 
+import { LanguageToggle } from '@/components/LanguageToggle';
+import { useLanguage } from '@/components/LanguageProvider';
 import { cn } from '@/lib/utils';
+import type { TKey } from '@/lib/i18n';
 
-const navigation = [
-  { name: 'Home', href: '/', icon: Home },
-  { name: 'Lessons', href: '/lessons', icon: BookOpen },
-  { name: 'Progress', href: '/progress', icon: LineChart },
+const navigation: { href: string; nameKey: TKey; icon: typeof Home }[] = [
+  { href: '/', nameKey: 'nav.home', icon: Home },
+  { href: '/lessons', nameKey: 'nav.lessons', icon: BookOpen },
+  { href: '/progress', nameKey: 'nav.progress', icon: LineChart },
 ];
 
 export function Header() {
   const pathname = usePathname();
+  const { t } = useLanguage();
   const [menuOpen, setMenuOpen] = React.useState(false);
 
   // Close the mobile menu when the route changes.
@@ -38,7 +42,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:border-gray-800 dark:bg-gray-950/95">
       <nav
-        aria-label="Main navigation"
+        aria-label={t('nav.main')}
         className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6"
       >
         <Link
@@ -62,35 +66,39 @@ export function Header() {
           <span className="font-display text-lg font-bold text-gray-900 dark:text-white">NextSpeak</span>
         </Link>
 
-        <div className="hidden items-center gap-1 sm:flex">
-          {navigation.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={isActive(item.href) ? 'page' : undefined}
-              className={cn(
-                'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
-                isActive(item.href)
-                  ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white'
-              )}
-            >
-              <item.icon className="h-4 w-4" aria-hidden="true" />
-              {item.name}
-            </Link>
-          ))}
-        </div>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden items-center gap-1 sm:flex">
+            {navigation.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+                className={cn(
+                  'flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500',
+                  isActive(item.href)
+                    ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white'
+                )}
+              >
+                <item.icon className="h-4 w-4" aria-hidden="true" />
+                {t(item.nameKey)}
+              </Link>
+            ))}
+          </div>
 
-        <button
-          type="button"
-          className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 sm:hidden"
-          aria-expanded={menuOpen}
-          aria-controls="mobile-menu"
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          {menuOpen ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
-        </button>
+          <LanguageToggle />
+
+          <button
+            type="button"
+            className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800 sm:hidden"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
+            aria-label={menuOpen ? t('menu.close') : t('menu.open')}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            {menuOpen ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
+          </button>
+        </div>
       </nav>
 
       {menuOpen && (
@@ -109,7 +117,7 @@ export function Header() {
                 )}
               >
                 <item.icon className="h-5 w-5" aria-hidden="true" />
-                {item.name}
+                {t(item.nameKey)}
               </Link>
             ))}
           </div>

@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -12,53 +14,30 @@ import {
   WifiOff,
 } from 'lucide-react';
 
+import { useLanguage } from '@/components/LanguageProvider';
 import { InstallAppButton } from '@/components/InstallAppButton';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { lessons, totalQuizQuestions } from '@/content/lessons';
+import type { TKey } from '@/lib/i18n';
 
-const steps = [
-  {
-    icon: BookOpen,
-    title: '1. Pick a lesson',
-    text: 'Start with greetings or jump to any topic — every lesson is beginner friendly.',
-  },
-  {
-    icon: GraduationCap,
-    title: '2. Study the content',
-    text: 'Short explanations, real examples, key phrases and a vocabulary list per lesson.',
-  },
-  {
-    icon: ListChecks,
-    title: '3. Take the quiz',
-    text: 'Answer five questions and get instant feedback with clear explanations.',
-  },
+const steps: { icon: typeof BookOpen; titleKey: TKey; textKey: TKey }[] = [
+  { icon: BookOpen, titleKey: 'home.step1Title', textKey: 'home.step1Text' },
+  { icon: GraduationCap, titleKey: 'home.step2Title', textKey: 'home.step2Text' },
+  { icon: ListChecks, titleKey: 'home.step3Title', textKey: 'home.step3Text' },
 ];
 
-const features = [
-  {
-    icon: Smartphone,
-    title: 'Works on any device',
-    text: 'Phones, tablets and desktops — the layout adapts automatically and everything is easy to tap.',
-  },
-  {
-    icon: Download,
-    title: 'Installable as an app',
-    text: 'Add NextSpeak to your home screen and open it like any native app. No store, no download fees.',
-  },
-  {
-    icon: WifiOff,
-    title: 'Keeps working offline',
-    text: 'Lessons you have opened stay available without internet. Your progress is saved on your device.',
-  },
-  {
-    icon: Keyboard,
-    title: 'Accessible by design',
-    text: 'Full keyboard support, clear focus states, readable text and screen-reader friendly pages.',
-  },
+const features: { icon: typeof BookOpen; titleKey: TKey; textKey: TKey }[] = [
+  { icon: Smartphone, titleKey: 'home.feature1Title', textKey: 'home.feature1Text' },
+  { icon: Download, titleKey: 'home.feature2Title', textKey: 'home.feature2Text' },
+  { icon: WifiOff, titleKey: 'home.feature3Title', textKey: 'home.feature3Text' },
+  { icon: Keyboard, titleKey: 'home.feature4Title', textKey: 'home.feature4Text' },
 ];
+
+const installTips: TKey[] = ['home.installTip1', 'home.installTip2', 'home.installTip3'];
 
 export default function HomePage() {
+  const { t } = useLanguage();
   const featuredLessons = lessons.slice(0, 3);
 
   return (
@@ -69,24 +48,24 @@ export default function HomePage() {
           <div className="mx-auto max-w-3xl text-center">
             <p className="mb-4 inline-flex items-center gap-2 rounded-full bg-primary-100 px-4 py-1.5 text-sm font-medium text-primary-700 dark:bg-primary-900/40 dark:text-primary-300">
               <Sparkles className="h-4 w-4" aria-hidden="true" />
-              Free · No sign-up · {lessons.length} beginner lessons
+              {t('home.badge', { n: lessons.length })}
             </p>
             <h1 className="text-balance text-4xl font-display font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl lg:text-6xl">
-              Learn English with <span className="text-primary-600 dark:text-primary-400">confidence</span>
+              {t('home.heroTitle')}{' '}
+              <span className="text-primary-600 dark:text-primary-400">{t('home.heroAccent')}</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600 dark:text-gray-300">
-              Short, friendly lessons with real examples and interactive quizzes. Your progress is saved
-              on your own device — start now, continue anytime, anywhere.
+              {t('home.heroSubtitle')}
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button asChild size="lg" className="w-full gap-2 sm:w-auto">
                 <Link href="/lessons">
-                  Start learning
+                  {t('home.ctaStart')}
                   <ArrowRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="w-full sm:w-auto">
-                <Link href="/progress">See my progress</Link>
+                <Link href="/progress">{t('home.ctaProgress')}</Link>
               </Button>
             </div>
           </div>
@@ -98,12 +77,12 @@ export default function HomePage() {
       </section>
 
       {/* Stats */}
-      <section aria-label="Course facts" className="border-y border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
+      <section aria-label={t('home.statsAria')} className="border-y border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-950">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-8 sm:grid-cols-3 sm:px-6">
           {[
-            { value: `${lessons.length}`, label: 'beginner lessons' },
-            { value: `${totalQuizQuestions}`, label: 'quiz questions with feedback' },
-            { value: '100%', label: 'free, forever' },
+            { value: `${lessons.length}`, label: t('home.statLessons') },
+            { value: `${totalQuizQuestions}`, label: t('home.statQuestions') },
+            { value: '100%', label: t('home.statFree') },
           ].map((stat) => (
             <div key={stat.label} className="text-center">
               <p className="text-3xl font-bold text-primary-600 dark:text-primary-400">{stat.value}</p>
@@ -116,14 +95,14 @@ export default function HomePage() {
       {/* How it works */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <h2 className="text-center text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
-          How it works
+          {t('home.howTitle')}
         </h2>
         <p className="mx-auto mt-3 max-w-2xl text-center text-gray-600 dark:text-gray-300">
-          Three simple steps — repeat them at your own pace.
+          {t('home.howSubtitle')}
         </p>
         <div className="mt-10 grid gap-6 sm:grid-cols-3">
           {steps.map((step) => (
-            <Card key={step.title}>
+            <Card key={step.titleKey}>
               <CardHeader>
                 <span
                   className="mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-primary-100 text-primary-600 dark:bg-primary-900/40 dark:text-primary-400"
@@ -131,9 +110,9 @@ export default function HomePage() {
                 >
                   <step.icon className="h-6 w-6" />
                 </span>
-                <CardTitle className="text-lg">{step.title}</CardTitle>
+                <CardTitle className="text-lg">{t(step.titleKey)}</CardTitle>
               </CardHeader>
-              <CardContent className="text-gray-600 dark:text-gray-300">{step.text}</CardContent>
+              <CardContent className="text-gray-600 dark:text-gray-300">{t(step.textKey)}</CardContent>
             </Card>
           ))}
         </div>
@@ -145,15 +124,13 @@ export default function HomePage() {
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
               <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
-                Start with these lessons
+                {t('home.featuredTitle')}
               </h2>
-              <p className="mt-3 text-gray-600 dark:text-gray-300">
-                From first “hello” to talking about your future plans.
-              </p>
+              <p className="mt-3 text-gray-600 dark:text-gray-300">{t('home.featuredSubtitle')}</p>
             </div>
             <Button asChild variant="outline" className="gap-2">
               <Link href="/lessons">
-                View all lessons
+                {t('home.viewAll')}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -165,7 +142,7 @@ export default function HomePage() {
                 <Card className="h-full transition-shadow hover:shadow-md">
                   <CardHeader>
                     <p className="text-sm font-medium text-primary-600 dark:text-primary-400">
-                      Week {lesson.week} · {lesson.durationMinutes} min
+                      {t('home.weekMin', { week: lesson.week, min: lesson.durationMinutes })}
                     </p>
                     <CardTitle className="text-xl">
                       <Link
@@ -179,7 +156,7 @@ export default function HomePage() {
                   <CardContent className="flex h-[calc(100%-4rem)] flex-col gap-4">
                     <p className="text-gray-600 dark:text-gray-300">{lesson.summary}</p>
                     <p className="mt-auto flex items-center gap-2 text-sm font-medium text-primary-600 dark:text-primary-400">
-                      Open lesson
+                      {t('home.openLesson')}
                       <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </p>
                   </CardContent>
@@ -193,11 +170,11 @@ export default function HomePage() {
       {/* Features */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <h2 className="text-center text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
-          Made for learning anywhere
+          {t('home.featuresTitle')}
         </h2>
         <div className="mt-10 grid gap-6 sm:grid-cols-2">
           {features.map((feature) => (
-            <Card key={feature.title}>
+            <Card key={feature.titleKey}>
               <CardHeader>
                 <span
                   className="mb-3 flex h-11 w-11 items-center justify-center rounded-lg bg-accent-100 text-accent-600 dark:bg-accent-900/40 dark:text-accent-400"
@@ -205,9 +182,9 @@ export default function HomePage() {
                 >
                   <feature.icon className="h-6 w-6" />
                 </span>
-                <CardTitle className="text-lg">{feature.title}</CardTitle>
+                <CardTitle className="text-lg">{t(feature.titleKey)}</CardTitle>
               </CardHeader>
-              <CardContent className="text-gray-600 dark:text-gray-300">{feature.text}</CardContent>
+              <CardContent className="text-gray-600 dark:text-gray-300">{t(feature.textKey)}</CardContent>
             </Card>
           ))}
         </div>
@@ -220,31 +197,21 @@ export default function HomePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-2xl">
                 <Download className="h-6 w-6 text-primary-600 dark:text-primary-400" aria-hidden="true" />
-                Add NextSpeak to your home screen
+                {t('home.installTitle')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-5 text-gray-600 dark:text-gray-300">
-              <p>
-                NextSpeak is a Progressive Web App (PWA): install it like a native app and open it in
-                one tap. On most phones and computers your browser offers an install option.
-              </p>
+              <p>{t('home.installText')}</p>
               <InstallAppButton />
               <ul className="space-y-2">
-                {[
-                  'Android (Chrome): tap “Install NextSpeak” above, or choose “Add to Home screen” in the menu.',
-                  'iPhone / iPad (Safari): Share → Add to Home Screen.',
-                  'Computer (Chrome / Edge): click the install icon in the address bar.',
-                ].map((tip) => (
-                  <li key={tip} className="flex gap-2">
+                {installTips.map((tipKey) => (
+                  <li key={tipKey} className="flex gap-2">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-600 dark:text-green-400" aria-hidden="true" />
-                    <span>{tip}</span>
+                    <span>{t(tipKey)}</span>
                   </li>
                 ))}
               </ul>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Good to know: lessons are cached after your first visit, so they keep working offline.
-                A first-time visit and future updates need an internet connection.
-              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{t('home.installNote')}</p>
             </CardContent>
           </Card>
         </div>
@@ -253,10 +220,10 @@ export default function HomePage() {
       {/* Final CTA */}
       <section className="bg-primary-600 py-14 dark:bg-primary-700">
         <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 px-4 text-center sm:px-6">
-          <h2 className="text-3xl font-bold text-white sm:text-4xl">Ready to say your first “hello”?</h2>
+          <h2 className="text-3xl font-bold text-white sm:text-4xl">{t('home.finalTitle')}</h2>
           <Button asChild size="lg" variant="secondary" className="w-full gap-2 bg-white text-primary-700 hover:bg-gray-100 sm:w-auto">
             <Link href="/lessons/greetings-and-introductions">
-              Start the first lesson
+              {t('home.finalCta')}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
           </Button>

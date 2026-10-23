@@ -3,6 +3,8 @@
 import * as React from 'react';
 import { Download } from 'lucide-react';
 
+import { useLanguage } from '@/components/LanguageProvider';
+
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
@@ -16,6 +18,7 @@ interface BeforeInstallPromptEvent extends Event {
  * - Other browsers: hidden (the install section still explains how to bookmark).
  */
 export function InstallAppButton() {
+  const { t } = useLanguage();
   const deferredPrompt = React.useRef<BeforeInstallPromptEvent | null>(null);
   const [installable, setInstallable] = React.useState(false);
   const [isIOS, setIsIOS] = React.useState(false);
@@ -57,7 +60,7 @@ export function InstallAppButton() {
   if (installed) {
     return (
       <p className="text-sm font-medium text-green-700 dark:text-green-400" role="status">
-        ✅ NextSpeak is installed — open it from your home screen!
+        {t('install.installed')}
       </p>
     );
   }
@@ -70,23 +73,18 @@ export function InstallAppButton() {
         className="inline-flex items-center gap-2 rounded-lg bg-primary-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2"
       >
         <Download className="h-4 w-4" aria-hidden="true" />
-        Install NextSpeak
+        {t('install.button')}
       </button>
     );
   }
 
   if (isIOS) {
     return (
-      <p className="text-sm text-gray-600 dark:text-gray-300">
-        On iPhone / iPad: tap the <span aria-hidden="true">⬆️</span> <strong>Share</strong> button in Safari,
-        then choose <strong>Add to Home Screen</strong>.
-      </p>
+      <p className="text-sm text-gray-600 dark:text-gray-300">{t('install.ios')}</p>
     );
   }
 
   return (
-    <p className="text-sm text-gray-600 dark:text-gray-300">
-      Open this site in your browser’s menu and choose <strong>Install app</strong> (or bookmark it).
-    </p>
+    <p className="text-sm text-gray-600 dark:text-gray-300">{t('install.generic')}</p>
   );
 }

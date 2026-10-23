@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowRight, CheckCircle2, RotateCcw, XCircle } from 'lucide-react';
 
 import { useProgress } from '@/components/ProgressProvider';
+import { useLanguage } from '@/components/LanguageProvider';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Progress } from '@/components/ui/Progress';
@@ -22,6 +23,7 @@ const LETTERS = ['A', 'B', 'C', 'D'];
 
 export function QuizRunner({ lesson }: { lesson: Lesson }) {
   const { recordQuiz } = useProgress();
+  const { t } = useLanguage();
 
   const [step, setStep] = React.useState(0);
   const [selected, setSelected] = React.useState<number | null>(null);
@@ -79,16 +81,20 @@ export function QuizRunner({ lesson }: { lesson: Lesson }) {
     return (
       <Card>
         <CardHeader>
-          <p className="text-sm font-medium text-primary-600 dark:text-primary-400">Quiz finished</p>
+          <p className="text-sm font-medium text-primary-600 dark:text-primary-400">{t('quiz.finishedLabel')}</p>
           <CardTitle id="quiz-result-heading" tabIndex={-1} className="text-2xl focus:outline-none">
-            You scored {correctCount} out of {lesson.quiz.length} ({scorePercent}%)
+            {t('quiz.resultScore', {
+              correct: correctCount,
+              total: lesson.quiz.length,
+              percent: scorePercent,
+            })}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           <Progress
             value={scorePercent}
             variant={passed ? 'success' : 'warning'}
-            aria-label={`Score: ${scorePercent}%`}
+            aria-label={t('quiz.scoreAria', { percent: scorePercent })}
           />
 
           <p
@@ -99,15 +105,13 @@ export function QuizRunner({ lesson }: { lesson: Lesson }) {
                 : 'bg-yellow-50 text-yellow-800 dark:bg-yellow-950/50 dark:text-yellow-300'
             )}
           >
-            {passed
-              ? `Excellent work! You passed (${PASSING_SCORE}% is the pass mark) and this lesson is now marked as completed.`
-              : `You need ${PASSING_SCORE}% to pass. Review the explanations below and try again — you are close!`}
+            {passed ? t('quiz.passedMsg', { pass: PASSING_SCORE }) : t('quiz.failedMsg', { pass: PASSING_SCORE })}
           </p>
 
           {/* Recap with explanations */}
           <section aria-labelledby="recap-heading">
             <h3 id="recap-heading" className="font-semibold text-gray-900 dark:text-white">
-              Question recap
+              {t('quiz.recap')}
             </h3>
             <ol className="mt-3 space-y-3">
               {answers.map((answer, index) => (
@@ -127,7 +131,8 @@ export function QuizRunner({ lesson }: { lesson: Lesson }) {
                   </p>
                   {!answer.correct && (
                     <p className="mt-1 pl-7 text-sm text-gray-600 dark:text-gray-400">
-                      Correct answer: <strong>{answer.question.options[answer.question.correctIndex]}</strong>
+                      {t('quiz.correctAnswerLabel')}{' '}
+                      <strong>{answer.question.options[answer.question.correctIndex]}</strong>
                     </p>
                   )}
                   <p className="mt-1 pl-7 text-sm text-gray-600 dark:text-gray-400">
@@ -141,14 +146,14 @@ export function QuizRunner({ lesson }: { lesson: Lesson }) {
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button type="button" className="gap-2" onClick={startOver}>
               <RotateCcw className="h-4 w-4" aria-hidden="true" />
-              Retake quiz
+              {t('quiz.retake')}
             </Button>
             <Button asChild variant="outline">
-              <Link href={`/lessons/${lesson.slug}`}>Back to the lesson</Link>
+              <Link href={`/lessons/${lesson.slug}`}>{t('quiz.backToLesson')}</Link>
             </Button>
             <Button asChild variant="ghost" className="gap-2">
               <Link href="/progress">
-                My progress
+                {t('quiz.myProgress')}
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -165,14 +170,14 @@ export function QuizRunner({ lesson }: { lesson: Lesson }) {
         <div>
           <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300">
             <span>
-              Question {step + 1} of {lesson.quiz.length}
+              {t('quiz.questionOf', { current: step + 1, total: lesson.quiz.length })}
             </span>
-            <span>{correctCount} correct so far</span>
+            <span>{t('quiz.correctSoFar', { n: correctCount })}</span>
           </div>
           <Progress
             className="mt-2"
             value={((step + (checked ? 1 : 0)) / lesson.quiz.length) * 100}
-            aria-label={`Quiz progress: question ${step + 1} of ${lesson.quiz.length}`}
+            aria-label={t('quiz.progressAria', { current: step + 1, total: lesson.quiz.length })}
           />
         </div>
 
@@ -238,7 +243,7 @@ export function QuizRunner({ lesson }: { lesson: Lesson }) {
               )}
             >
               <p className="font-semibold">
-                {selected === question.correctIndex ? 'Correct! 🎉' : 'Not quite.'}
+                {selected === question.correctIndex ? t('quiz.correct') : t('quiz.notQuite')}
               </p>
               <p className="mt-1">{question.explanation}</p>
             </div>
@@ -248,11 +253,11 @@ export function QuizRunner({ lesson }: { lesson: Lesson }) {
         <div className="flex flex-col gap-3 sm:flex-row">
           {!checked ? (
             <Button type="button" className="sm:w-40" disabled={selected === null} onClick={checkAnswer}>
-              Check answer
+              {t('quiz.check')}
             </Button>
           ) : (
             <Button type="button" className="sm:w-40 gap-2" onClick={nextQuestion}>
-              {isLast ? 'See my result' : 'Next question'}
+              {isLast ? t('quiz.seeResult') : t('quiz.next')}
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Button>
           )}
