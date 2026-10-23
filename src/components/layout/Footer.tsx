@@ -14,18 +14,18 @@ export function Footer() {
         <div className="space-y-3">
           <Link href="/" className="flex items-center gap-2" aria-label="NextSpeak home">
             <span
-              className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-black/5 dark:ring-white/10"
+              className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-black/5 dark:ring-white/10 sm:h-11 sm:w-11"
               aria-hidden="true"
             >
               <Image
                 src="/icon-152.png"
                 alt=""
-                width={36}
-                height={36}
+                width={44}
+                height={44}
                 className="h-full w-full object-contain"
               />
             </span>
-            <span className="font-display text-lg font-bold text-gray-900 dark:text-white">NextSpeak</span>
+            <span className="font-display text-lg font-bold text-gray-900 dark:text-white sm:text-xl">NextSpeak</span>
           </Link>
           <p className="max-w-xs text-sm text-gray-500 dark:text-gray-400">{t('footer.tagline')}</p>
         </div>

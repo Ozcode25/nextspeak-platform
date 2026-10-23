@@ -51,19 +51,19 @@ export function Header() {
           aria-label="NextSpeak home"
         >
           <span
-            className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white ring-1 ring-black/5 dark:ring-white/10"
+            className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white ring-1 ring-black/5 dark:ring-white/10 sm:h-12 sm:w-12"
             aria-hidden="true"
           >
             <Image
               src="/icon-152.png"
               alt=""
-              width={36}
-              height={36}
+              width={48}
+              height={48}
               priority
               className="h-full w-full object-contain"
             />
           </span>
-          <span className="font-display text-lg font-bold text-gray-900 dark:text-white">NextSpeak</span>
+          <span className="font-display text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">NextSpeak</span>
         </Link>
 
         <div className="flex items-center gap-2 sm:gap-3">
