@@ -3,6 +3,7 @@
   "framework": "nextjs",
   "buildCommand": "next build",
   "rewrites": [
-    { "source": "/offline.html", "destination": "/offline" }
+    { "source": "/offline.html", "destination": "/offline" },
+    { "source": "/placement-test.html", "destination": "/placement-test" }
   ]
 }
