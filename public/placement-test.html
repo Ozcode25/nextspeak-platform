@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<!--
+  NextSpeak — CEFR Diagnostic Placement Test
+  Single self-contained page (inline CSS + JS, no frameworks, no build step).
+  Served from /placement-test.html
+
+  Interface strings: Spanish (default) / English — toggle in the header.
+  Test content (passages, questions, scripts): always English.
+
+  Editing content later? → see the QUESTIONS array at the top of the <script>.
+  Next steps (marked placeholders): showResults() and sendToSheet().
+-->
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+  <title>Prueba Diagnóstica de Inglés | NextSpeak</title>
+  <meta name="description" content="Prueba diagnóstica de inglés nivel A1 a C2: lectura y escucha, 15 minutos, resultado adaptativo. CEFR English placement test by NextSpeak.">
+  <meta name="theme-color" content="#0ea5e9">
+  <link rel="icon" href="/favicon.ico">
+  <!-- Same typeface as the main site (Montserrat) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!--
+    Pre-paint theme script (no flash): same storage key as the main site
+    (nextspeak-theme-v1) so the chosen light/dark mode carries over.
+  -->
+  <script>try{var t=localStorage.getItem('nextspeak-theme-v1');document.documentElement.className+=(t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches))?' dark':' light'}catch(e){}</script>
+  <style>
+    /* ============ Design tokens (match the main site) ============ */
+    :root {
+      color-scheme: light;
+      --bg: #f9fafb;            /* gray-50 */
+      --surface: #ffffff;
+      --surface-2: #f3f4f6;     /* gray-100 */
+      --text: #111827;          /* gray-900 */
+      --muted: #6b7280;         /* gray-500 */
+      --border: #e5e7eb;        /* gray-200 */
+      --primary: #0ea5e9;       /* sky-500 */
+      --primary-600: #0284c7;
+      --primary-700: #0369a1;
+      --primary-soft: rgba(14, 165, 233, 0.10);
+      --primary-text: #0369a1;
+      --secondary: #d946ef;     /* fuchsia-500 (Listening) */
+      --secondary-soft: rgba(217, 70, 239, 0.10);
+      --secondary-text: #a21caf;
+      --danger: #dc2626;
+      --danger-soft: rgba(220, 38, 38, 0.08);
+      --warn: #d97706;
+      --radius: 0.75rem;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    html.dark {
+      color-scheme: dark;
+      --bg: #030712;            /* gray-950 */
+      --surface: #111827;       /* gray-900 */
+      --surface-2: #1f2937;     /* gray-800 */
+      --text: #f9fafb;
+      --muted: #9ca3af;
+      --border: #374151;
+      --primary-soft: rgba(14, 165, 233, 0.16);
+      --primary-text: #7dd3fc;
+      --secondary-soft: rgba(217, 70, 239, 0.16);
+      --secondary-text: #e879f9;
+      --danger: #f87171;
+      --danger-soft: rgba(248, 113, 113, 0.10);
+      --shadow: none;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Montserrat', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
+    }
+
+    /* ============ Header (mirrors the main site) ============ */
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav {
+      max-width: 64rem;
+      margin: 0 auto;
+      height: 4rem;
+      padding: 0 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      color: var(--text);
+      border-radius: var(--radius);
+    }
+    .brand-chip {
+      width: 2.5rem;
+      height: 2.5rem;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      background: #fff;
+      border-radius: 0.75rem;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+    }
+    .brand-chip img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .brand-name { font-weight: 700; font-size: 1.125rem; letter-spacing: -0.01em; }
+    .brand-sub {
+      display: block;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* Segmented EN / ES toggle (same markup style as the main site) */
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      padding: 2px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .lang-toggle button {
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      font: inherit;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      border-radius: 0.5rem;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .lang-toggle button[aria-pressed="true"] { background: var(--primary-600); color: #fff; }
+    .lang-toggle button:hover:not([aria-pressed="true"]) { color: var(--text); }
+
+    /* ============ Layout ============ */
+    main.wrap {
+      flex: 1;
+      width: 100%;
+      max-width: 64rem;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 3rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.25rem;
+    }
+    @media (min-width: 640px) {
+      main.wrap { padding: 2.5rem 1.5rem 4rem; }
+      .card { padding: 2rem; }
+      .brand-name { font-size: 1.25rem; }
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      border-radius: 9999px;
+      background: var(--primary-soft);
+      color: var(--primary-text);
+      padding: 0.375rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .hero-title {
+      margin: 1rem 0 0;
+      font-size: clamp(1.75rem, 6vw, 3rem);
+      font-weight: 800;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      text-wrap: balance;
+    }
+    .hero-alt {
+      display: block;
+      font-size: clamp(1.125rem, 3.5vw, 1.5rem);
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: -0.01em;
+      margin-top: 0.375rem;
+    }
+    .lead {
+      margin: 1rem 0 0;
+      color: var(--muted);
+      font-size: 1.0625rem;
+      max-width: 42rem;
+    }
+
+    .points {
+      list-style: none;
+      margin: 1.5rem 0 0;
+      padding: 0;
+      display: grid;
+      gap: 0.75rem;
+    }
+    .points li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      font-size: 0.9375rem;
+      font-weight: 500;
+    }
+    .point-check {
+      flex-shrink: 0;
+      width: 1.375rem;
+      height: 1.375rem;
+      margin-top: 0.0625rem;
+      border-radius: 9999px;
+      background: var(--primary-soft);
+      color: var(--primary-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .point-check svg { width: 0.8125rem; height: 0.8125rem; }
+
+    .levels-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+    }
+    .level-chip {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.25rem 0.625rem;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      background: var(--surface-2);
+    }
+    .level-chip:first-child { border-color: transparent; background: var(--primary-soft); color: var(--primary-text); }
+
+    /* ============ Form ============ */
+    .form { margin-top: 1.75rem; display: grid; gap: 1rem; max-width: 32rem; }
+    .field label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 0.375rem;
+    }
+    .field .req { color: var(--danger); }
+    .field input {
+      width: 100%;
+      font: inherit;
+      font-size: 1rem;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 0.875rem;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .field input::placeholder { color: var(--muted); opacity: 0.75; }
+    .field input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+    .field input[aria-invalid="true"] { border-color: var(--danger); }
+    .field-error {
+      display: none;
+      margin: 0.375rem 0 0;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--danger);
+    }
+    .field-error.is-visible { display: block; }
+
+    /* ============ Buttons ============ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      font: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      border: 0;
+      border-radius: var(--radius);
+      background: var(--primary-600);
+      color: #fff;
+      padding: 0.8125rem 1.25rem;
+      min-height: 3rem;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: background-color 0.15s ease;
+    }
+    .btn:hover:not(:disabled) { background: var(--primary-700); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn svg { width: 1.125rem; height: 1.125rem; flex-shrink: 0; }
+    @media (min-width: 640px) { .btn.btn-inline { width: auto; } }
+
+    .btn-play {
+      background: var(--surface);
+      color: var(--primary-text);
+      border: 1px solid var(--primary);
+      box-shadow: none;
+    }
+    .btn-play:hover:not(:disabled) { background: var(--primary-soft); }
+
+    .fine {
+      margin: 0;
+      font-size: 0.8125rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ============ Test screen ============ */
+    .test-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .badges { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 9999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-reading { background: var(--primary-soft); color: var(--primary-text); }
+    .badge-listening { background: var(--secondary-soft); color: var(--secondary-text); }
+    .badge-level { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+    .badge-placeholder { background: var(--warn); color: #fff; letter-spacing: 0.08em; }
+
+    .timer {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.375rem 0.75rem;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .timer svg { width: 1rem; height: 1rem; color: var(--muted); }
+    .timer-value { font-variant-numeric: tabular-nums; font-weight: 700; }
+    .timer.is-warning { border-color: var(--warn); color: var(--warn); }
+    .timer.is-warning svg { color: var(--warn); }
+
+    .progress {
+      height: 0.5rem;
+      width: 100%;
+      background: var(--surface-2);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--primary-600);
+      border-radius: 9999px;
+      transition: width 0.5s ease;
+    }
+    .counter {
+      margin: 0.5rem 0 0;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .instruction {
+      margin: 1.25rem 0 0;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .listening-box {
+      margin-top: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .plays-info { margin: 0; font-size: 0.8125rem; font-weight: 600; color: var(--muted); }
+    .voice-error {
+      margin: 0;
+      width: 100%;
+      background: var(--danger-soft);
+      border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent);
+      color: var(--danger);
+      border-radius: var(--radius);
+      padding: 0.75rem 0.875rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+
+    .passage {
+      margin-top: 0.75rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 1rem;
+      font-size: 1.0625rem;
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+
+    .question-block { margin-top: 1.25rem; border-radius: var(--radius); }
+    .question-block:focus { outline: none; }
+    .question-text {
+      margin: 0 0 1rem;
+      font-size: 1.125rem;
+      font-weight: 700;
+      line-height: 1.45;
+      letter-spacing: -0.01em;
+    }
+
+    .options { display: grid; gap: 0.625rem; }
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.8125rem 0.875rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+      min-height: 3.25rem;
+    }
+    .option:hover { border-color: var(--primary); }
+    .option.is-selected {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+    .option input[type="radio"] {
+      width: 1.15rem;
+      height: 1.15rem;
+      flex-shrink: 0;
+      accent-color: var(--primary);
+      margin: 0;
+      cursor: pointer;
+    }
+    .opt-letter {
+      flex-shrink: 0;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--muted);
+      width: 1rem;
+    }
+    .option.is-selected .opt-letter { color: var(--primary-text); }
+    .opt-text { font-size: 0.9375rem; font-weight: 500; line-height: 1.45; }
+
+    .hint {
+      margin: 0.75rem 0 0;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    .next-row { margin-top: 1.25rem; }
+
+    /* ============ Results placeholder (built in Prompt 3) ============ */
+    .placeholder-card { text-align: center; }
+    .placeholder-card h2 {
+      margin: 1rem 0 0.5rem;
+      font-size: clamp(1.375rem, 4vw, 1.75rem);
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+    .placeholder-card p { margin: 0 auto; max-width: 36rem; color: var(--muted); }
+    .placeholder-card pre {
+      display: inline-block;
+      margin-top: 1.25rem;
+      text-align: left;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      font-size: 0.8125rem;
+      max-width: 100%;
+      overflow-x: auto;
+      color: var(--text);
+    }
+
+    /* ============ Footer ============ */
+    .site-footer {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 1rem;
+      text-align: center;
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+    .site-footer p { margin: 0; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="Language / Idioma">
+      <div class="brand" id="brand">
+        <span class="brand-chip" aria-hidden="true">
+          <img src="/icon-152.png" alt="" width="40" height="40"
+               onerror="this.closest('.brand-chip').style.display='none'">
+        </span>
+        <span>
+          <span class="brand-name">NextSpeak</span>
+          <span class="brand-sub" data-i18n="brand.sub"></span>
+        </span>
+      </div>
+      <div class="lang-toggle" role="group" aria-label="Language / Idioma">
+        <button type="button" lang="es" data-lang="es" aria-pressed="true">ES</button>
+        <button type="button" lang="en" data-lang="en" aria-pressed="false">EN</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <!-- ============ 1. Welcome screen ============ -->
+    <section id="welcome-screen" class="card" aria-labelledby="welcome-title">
+      <span class="pill" data-i18n="welcome.badge"></span>
+      <h1 class="hero-title" id="welcome-title">
+        <span data-i18n="welcome.title"></span>
+        <span class="hero-alt" lang="en" data-i18n="welcome.titleAlt"></span>
+      </h1>
+      <p class="lead" data-i18n="welcome.intro"></p>
+
+      <ul class="points">
+        <li>
+          <span class="point-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span data-i18n="welcome.point1"></span>
+        </li>
+        <li>
+          <span class="point-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span data-i18n="welcome.point2"></span>
+        </li>
+        <li>
+          <span class="point-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span data-i18n="welcome.point3"></span>
+        </li>
+        <li>
+          <span class="point-check" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+          <span data-i18n="welcome.point4"></span>
+        </li>
+      </ul>
+
+      <div class="levels-strip" aria-hidden="true">
+        <span class="level-chip">A1</span>
+        <span class="level-chip">A2</span>
+        <span class="level-chip">B1</span>
+        <span class="level-chip">B2</span>
+        <span class="level-chip">C1</span>
+        <span class="level-chip">C2</span>
+      </div>
+
+      <form class="form" id="start-form" novalidate>
+        <div class="field">
+          <label for="name-input"><span data-i18n="form.name"></span> <span class="req" aria-hidden="true">*</span></label>
+          <input id="name-input" name="name" type="text" autocomplete="name" required
+                 data-i18n-ph="form.namePh" aria-describedby="name-error">
+          <p class="field-error" id="name-error" role="alert"></p>
+        </div>
+        <div class="field">
+          <label for="email-input"><span data-i18n="form.email"></span> <span class="req" aria-hidden="true">*</span></label>
+          <input id="email-input" name="email" type="email" autocomplete="email" required
+                 data-i18n-ph="form.emailPh" aria-describedby="email-error">
+          <p class="field-error" id="email-error" role="alert"></p>
+        </div>
+        <button class="btn" type="submit">
+          <span data-i18n="form.start"></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+        <p class="fine" data-i18n="form.privacy"></p>
+      </form>
+    </section>
+
+    <!-- ============ 2. Test screen ============ -->
+    <section id="test-screen" class="card" hidden aria-labelledby="question-text">
+      <div class="test-top">
+        <div class="badges">
+          <span class="badge badge-reading" id="skill-badge"></span>
+          <span class="badge badge-level" id="level-badge"></span>
+        </div>
+        <div class="timer" id="timer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <span data-i18n="test.time"></span>
+          <span class="timer-value" id="timer-value">15:00</span>
+        </div>
+      </div>
+
+      <div class="progress" id="progress-bar" role="progressbar"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+           data-i18n-aria="test.progress">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+      <p class="counter" id="question-counter"></p>
+
+      <p class="instruction" id="instruction" data-i18n="test.readPassage"></p>
+
+      <div class="listening-box" id="listening-box" hidden>
+        <button class="btn btn-play" type="button" id="play-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          <span data-i18n="test.play"></span>
+        </button>
+        <p class="plays-info" id="plays-info"></p>
+        <p class="voice-error" id="voice-error" hidden role="alert"></p>
+      </div>
+
+      <div class="passage" id="passage" lang="en" hidden></div>
+
+      <div class="question-block" id="question-block" tabindex="-1">
+        <h2 class="question-text" id="question-text" lang="en"></h2>
+        <div class="options" id="options" lang="en"></div>
+        <p class="hint" id="select-hint" data-i18n="test.selectHint"></p>
+      </div>
+
+      <div class="next-row">
+        <button class="btn" type="button" id="next-btn" disabled>
+          <span data-i18n="test.next"></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ============ 3. Results screen (PLACEHOLDER — built in Prompt 3) ============ -->
+    <section id="results-screen" class="card placeholder-card" hidden>
+      <span class="badge badge-placeholder">PLACEHOLDER</span>
+      <h2 data-i18n="results.title"></h2>
+      <p id="results-note"></p>
+      <pre id="results-debug" aria-label="showResults(finalLevel, scores)"></pre>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p data-i18n="footer.note"></p>
+  </footer>
+
+  <script>
+    'use strict';
+
+    /* =====================================================================
+       QUESTION DATA — edit content here later.
+       Each item: id, level, skill ("reading" | "listening"),
+                  passage (reading) OR script (listening, never shown),
+                  question, options (3–4), correctIndex.
+       Every level has exactly 4 items (2 reading + 2 listening), in order.
+    ===================================================================== */
+    const QUESTIONS = [
+      /* ---------------- A1 ---------------- */
+      {
+        id: 'a1-r1', level: 'A1', skill: 'reading',
+        passage: 'Welcome to Sunrise Café! We are open from 7:00 a.m. to 9:00 p.m. every day. Free WiFi for all customers. Ask about our new breakfast menu!',
+        question: 'When does Sunrise Café close?',
+        options: ['At 7:00 a.m.', 'At 9:00 p.m.', 'At 6:00 p.m.'],
+        correctIndex: 1
+      },
+      {
+        id: 'a1-l1', level: 'A1', skill: 'listening',
+        script: 'Hi! My name is Anna. I am twelve years old, and I live in Lima with my brother.',
+        question: 'How old is Anna?',
+        options: ['Twelve.', 'Ten.', 'Fourteen.'],
+        correctIndex: 0
+      },
+      {
+        id: 'a1-r2', level: 'A1', skill: 'reading',
+        passage: 'This is my family. My father is a doctor and my mother is a teacher. I have one sister. We live in a small house near the park.',
+        question: 'What is the speaker’s mother’s job?',
+        options: ['She is a doctor.', 'She is a nurse.', 'She is a teacher.'],
+        correctIndex: 2
+      },
+      {
+        id: 'a1-l2', level: 'A1', skill: 'listening',
+        script: 'My favorite food is pizza. I eat pizza on Saturdays with my friends.',
+        question: 'When does the speaker eat pizza?',
+        options: ['On Sundays.', 'On Saturdays.', 'On Fridays.'],
+        correctIndex: 1
+      },
+
+      /* ---------------- A2 ---------------- */
+      {
+        id: 'a2-r1', level: 'A2', skill: 'reading',
+        passage: 'Hello Sam,\n\nAre you free on Saturday morning? There is a new movie at the City Cinema. It starts at 11:00, but let’s meet at 10:30 for a coffee.\n\nLucy',
+        question: 'What time does the movie start?',
+        options: ['At 11:00 a.m.', 'At 10:30 a.m.', 'At 12:00 p.m.'],
+        correctIndex: 0
+      },
+      {
+        id: 'a2-l1', level: 'A2', skill: 'listening',
+        script: 'The bus to the airport leaves from gate five at half past two. Please have your ticket ready.',
+        question: 'Where does the bus leave from?',
+        options: ['Gate three.', 'Platform two.', 'Gate five.'],
+        correctIndex: 2
+      },
+      {
+        id: 'a2-r2', level: 'A2', skill: 'reading',
+        passage: 'Travel tip for Montreal: next week it will be cold and windy, with temperatures around minus five degrees. Pack a warm coat and gloves, and leave the summer clothes at home.',
+        question: 'What should visitors pack?',
+        options: ['Sunglasses and a hat.', 'A warm coat and gloves.', 'Light summer clothes.', 'An umbrella.'],
+        correctIndex: 1
+      },
+      {
+        id: 'a2-l2', level: 'A2', skill: 'listening',
+        script: 'I usually wake up at six o’clock, but on weekends I sleep until eight, because I like to rest.',
+        question: 'What time does the speaker wake up on weekends?',
+        options: ['At six o’clock.', 'At seven o’clock.', 'At eight o’clock.'],
+        correctIndex: 2
+      },
+
+      /* ---------------- B1 ---------------- */
+      {
+        id: 'b1-r1', level: 'B1', skill: 'reading',
+        passage: 'Although the gym opens at six in the morning, most members arrive after work, around six in the evening. The busiest hours are from six to eight, so come earlier if you want to use the machines.',
+        question: 'When do most members arrive at the gym?',
+        options: ['After work, around six in the evening.', 'At six in the morning.', 'On Sunday mornings.'],
+        correctIndex: 0
+      },
+      {
+        id: 'b1-l1', level: 'B1', skill: 'listening',
+        script: 'I was going to call you last night, but my phone battery died, so I sent you an email instead.',
+        question: 'Why didn’t the speaker call?',
+        options: ['They were busy at work.', 'Their phone’s battery died.', 'They lost their phone.'],
+        correctIndex: 1
+      },
+      {
+        id: 'b1-r2', level: 'B1', skill: 'reading',
+        passage: 'The city library will be closed next Monday for renovations. During this time, you can return your books at the small branch on Oak Street. All other services will resume on Tuesday.',
+        question: 'What can readers do next Monday?',
+        options: ['Borrow new books at the main library.', 'Use the main library’s computers.', 'Return books at the Oak Street branch.', 'Nothing — every branch will be closed.'],
+        correctIndex: 2
+      },
+      {
+        id: 'b1-l2', level: 'B1', skill: 'listening',
+        script: 'If the weather is nice, we’ll have the picnic in High Park. Otherwise, we’ll meet at my apartment instead.',
+        question: 'What will happen if the weather is bad?',
+        options: ['They will still go to High Park.', 'They will meet at the speaker’s apartment.', 'The picnic will be postponed until next week.'],
+        correctIndex: 1
+      },
+
+      /* ---------------- B2 ---------------- */
+      {
+        id: 'b2-r1', level: 'B2', skill: 'reading',
+        passage: 'The company has decided to postpone the product launch until spring, since customer feedback from the beta test suggested that several features still needed refinement before going to market.',
+        question: 'Why was the product launch postponed?',
+        options: ['The budget was cut.', 'Beta feedback showed features needing refinement.', 'The CEO was on vacation.'],
+        correctIndex: 1
+      },
+      {
+        id: 'b2-l1', level: 'B2', skill: 'listening',
+        script: 'Not only did the team finish ahead of schedule, but they also came in under budget.',
+        question: 'What does the speaker say about the team?',
+        options: ['They were late and expensive.', 'They finished early and spent less than planned.', 'They still need more time.'],
+        correctIndex: 1
+      },
+      {
+        id: 'b2-r2', level: 'B2', skill: 'reading',
+        passage: 'Despite its popularity, the new app has been criticized for collecting more user data than necessary. Regulators in several countries are now investigating how the company handles this information.',
+        question: 'What is the main criticism of the app?',
+        options: ['It is too expensive.', 'It is not popular.', 'It collects more user data than necessary.', 'Regulators endorse it.'],
+        correctIndex: 2
+      },
+      {
+        id: 'b2-l2', level: 'B2', skill: 'listening',
+        script: 'Had we known about the traffic, we would have left an hour earlier.',
+        question: 'What does the speaker mean?',
+        options: ['They wish they had left earlier.', 'They left early because of the traffic.', 'They will leave earlier tomorrow.'],
+        correctIndex: 0
+      },
+
+      /* ---------------- C1 ---------------- */
+      {
+        id: 'c1-r1', level: 'C1', skill: 'reading',
+        passage: 'The proposal was met with considerable skepticism among board members, who questioned whether the projected returns justified the substantial upfront investment required in the first two years.',
+        question: 'What did the board members doubt?',
+        options: ['The meeting’s schedule.', 'Whether the returns justified the investment.', 'The chairman’s honesty.'],
+        correctIndex: 1
+      },
+      {
+        id: 'c1-l1', level: 'C1', skill: 'listening',
+        script: 'The documentary explores how urbanization has transformed not only the physical landscape of the region, but also its cultural identity.',
+        question: 'What does the documentary examine?',
+        options: ['Only the region’s buildings.', 'Both the physical landscape and the cultural identity.', 'The history of filmmaking.'],
+        correctIndex: 1
+      },
+      {
+        id: 'c1-r2', level: 'C1', skill: 'reading',
+        passage: 'Although the manuscript had been rejected by several publishers, the author remained convinced that its unconventional narrative structure would ultimately resonate with readers looking for something different.',
+        question: 'What did critics and publishers find unconventional?',
+        options: ['The publisher’s decisions.', 'The narrative structure of the manuscript.', 'The author’s handwriting.', 'The book’s cover design.'],
+        correctIndex: 1
+      },
+      {
+        id: 'c1-l2', level: 'C1', skill: 'listening',
+        script: 'Critics argue that the treaty, while symbolically significant, lacks the enforcement mechanisms necessary to compel compliance.',
+        question: 'What do critics say the treaty lacks?',
+        options: ['International support.', 'Symbolic significance.', 'Enforcement mechanisms.'],
+        correctIndex: 2
+      },
+
+      /* ---------------- C2 ---------------- */
+      {
+        id: 'c2-r1', level: 'C2', skill: 'reading',
+        passage: 'Ironically, the very algorithm designed to curate diverse viewpoints has been shown to confine users to ideologically homogeneous enclaves, thereby exacerbating the polarization it was intended to mitigate.',
+        question: 'What ironic outcome is described?',
+        options: ['The algorithm broadened users’ viewpoints.', 'The algorithm pushed users into ideological echo chambers.', 'Users became less polarized.', 'The platform lost its users.'],
+        correctIndex: 1
+      },
+      {
+        id: 'c2-l1', level: 'C2', skill: 'listening',
+        script: 'The researcher’s findings, far from being definitive, merely engendered a more nuanced debate among scholars who had previously regarded the issue as settled.',
+        question: 'What was the effect of the findings?',
+        options: ['They sparked a more nuanced debate.', 'They ended the debate for good.', 'They were dismissed as irrelevant.'],
+        correctIndex: 0
+      },
+      {
+        id: 'c2-r2', level: 'C2', skill: 'reading',
+        passage: 'Notwithstanding its aesthetic appeal, the architect’s design was ultimately deemed impracticable, as the load-bearing requirements of the upper floors could not be reconciled with the cantilevered façade.',
+        question: 'Why was the design rejected?',
+        options: ['It was too expensive to build.', 'It was considered ugly.', 'Its structural requirements conflicted with the cantilevered façade.', 'The city banned cantilevered buildings.'],
+        correctIndex: 2
+      },
+      {
+        id: 'c2-l2', level: 'C2', skill: 'listening',
+        script: 'Proponents contend that the legislation will galvanize investment, whereas detractors maintain that its provisions are, at best, a palliative measure unlikely to address the underlying malaise.',
+        question: 'What do detractors believe?',
+        options: ['The legislation will galvanize investment.', 'Its provisions are a shallow fix for deeper problems.', 'The law will be highly effective.'],
+        correctIndex: 1
+      }
+    ];
+
+    /* ===================== Test configuration ===================== */
+    const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+    const PASS_MARK = 3;              // correct answers needed out of 4
+    const TOTAL_SECONDS = 15 * 60;    // 15:00
+    const PLAYS_PER_QUESTION = 2;     // listening plays allowed
+    const LANGS = ['es', 'en'];
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    /* ===================== Interface strings ===================== */
+    const I18N = {
+      es: {
+        'brand.sub': 'Prueba de nivel',
+        'meta.title': 'Prueba Diagnóstica de Inglés | NextSpeak',
+        'welcome.badge': 'Gratis · Sin registro · A1–C2',
+        'welcome.title': 'Prueba Diagnóstica de Inglés',
+        'welcome.titleAlt': 'English Placement Test',
+        'welcome.intro': 'Tu nivel se decide pregunta a pregunta: empiezas en A1 y avanzas solo si apruebas cada nivel (3 de 4 o más). Todo el contenido del test está en inglés.',
+        'welcome.point1': 'Aproximadamente 15 minutos',
+        'welcome.point2': 'Lectura y escucha con audio del navegador',
+        'welcome.point3': 'Niveles A1 a C2 con escalera adaptativa',
+        'welcome.point4': 'Sin diccionarios ni traductores',
+        'form.name': 'Nombre',
+        'form.email': 'Correo electrónico',
+        'form.namePh': 'Tu nombre',
+        'form.emailPh': 'tu@correo.com',
+        'form.errName': 'Escribe tu nombre.',
+        'form.errEmailReq': 'Escribe tu correo electrónico.',
+        'form.errEmailInv': 'Ese correo no es válido. Ejemplo: tu@correo.com',
+        'form.start': 'Iniciar prueba',
+        'form.privacy': 'Usamos tu nombre y correo solo para asociar el resultado de esta prueba.',
+        'test.time': 'Tiempo restante',
+        'test.progress': 'Progreso de la prueba',
+        'test.reading': 'Lectura',
+        'test.listening': 'Escucha',
+        'test.level': 'Nivel {level}',
+        'test.question': 'Pregunta {n} de {total}',
+        'test.readPassage': 'Lee el texto y responde la pregunta.',
+        'test.listenInstruction': 'Escucha el audio (máximo 2 reproducciones) y responde. No verás el texto.',
+        'test.play': 'Reproducir audio',
+        'test.plays': 'Reproducciones restantes: {n}',
+        'test.noPlays': 'No quedan reproducciones para esta pregunta.',
+        'test.noVoice': 'Tu navegador no ofrece ninguna voz en inglés para reproducir el audio. Prueba con Chrome, Edge o Safari e inténtalo de nuevo.',
+        'test.noSupport': 'Tu navegador no soporta el audio con voz. Puedes responder a la pregunta igualmente.',
+        'test.selectHint': 'Elige una opción para continuar.',
+        'test.next': 'Siguiente',
+        'results.title': 'Resultados (placeholder)',
+        'results.note': 'Tu nivel final será: {level}. Esta pantalla se construye en el siguiente paso (Prompt 3).',
+        'footer.note': 'NextSpeak · Prueba diagnóstica CEFR · Tu progreso se guarda solo en este dispositivo.'
+      },
+      en: {
+        'brand.sub': 'Placement test',
+        'meta.title': 'English Placement Test | NextSpeak',
+        'welcome.badge': 'Free · No sign-up · A1–C2',
+        'welcome.title': 'English Placement Test',
+        'welcome.titleAlt': 'Prueba Diagnóstica de Inglés',
+        'welcome.intro': 'Your level is decided question by question: you start at A1 and advance only if you pass each level (3 out of 4 or more). All test content is in English.',
+        'welcome.point1': 'About 15 minutes',
+        'welcome.point2': 'Reading and listening with browser audio',
+        'welcome.point3': 'Levels A1 to C2 with an adaptive ladder',
+        'welcome.point4': 'No dictionaries or translators',
+        'form.name': 'Name',
+        'form.email': 'Email',
+        'form.namePh': 'Your name',
+        'form.emailPh': 'you@email.com',
+        'form.errName': 'Enter your name.',
+        'form.errEmailReq': 'Enter your email.',
+        'form.errEmailInv': 'That email is not valid. Example: you@email.com',
+        'form.start': 'Start test',
+        'form.privacy': 'We use your name and email only to associate the result of this test.',
+        'test.time': 'Time left',
+        'test.progress': 'Test progress',
+        'test.reading': 'Reading',
+        'test.listening': 'Listening',
+        'test.level': 'Level {level}',
+        'test.question': 'Question {n} of {total}',
+        'test.readPassage': 'Read the text and answer the question.',
+        'test.listenInstruction': 'Listen to the audio (up to 2 plays) and answer. You won’t see the script.',
+        'test.play': 'Play audio',
+        'test.plays': 'Plays remaining: {n}',
+        'test.noPlays': 'No plays remaining for this question.',
+        'test.noVoice': 'Your browser has no English voice available to play the audio. Try Chrome, Edge or Safari and try again.',
+        'test.noSupport': 'Your browser does not support speech audio. You can still answer the question.',
+        'test.selectHint': 'Select an option to continue.',
+        'test.next': 'Next',
+        'results.title': 'Results (placeholder)',
+        'results.note': 'Your final level will be: {level}. This screen is built in the next step (Prompt 3).',
+        'footer.note': 'NextSpeak · CEFR diagnostic test · Your progress is stored only on this device.'
+      }
+    };
+
+    /* ===================== State ===================== */
+    const testState = {
+      lang: 'es',              // default: Spanish
+      name: '',
+      email: '',
+      levelIndex: 0,           // index into LEVELS
+      qInLevel: 0,             // 0..3 within the current level
+      levelCorrect: 0,
+      answered: 0,             // total answered (progress numerator)
+      scores: [],              // { level, correct, total, passed } per finished level
+      selected: null,          // selected option index for the current question
+      playsLeft: PLAYS_PER_QUESTION,
+      timeLeft: TOTAL_SECONDS,
+      timerId: null,
+      running: false
+    };
+    let lastResult = null;     // remembers showResults args for re-translating
+
+    /* ===================== Helpers ===================== */
+    const $ = (id) => document.getElementById(id);
+
+    function t(key) {
+      return (I18N[testState.lang] && I18N[testState.lang][key]) || I18N.es[key] || key;
+    }
+    function format(str, vars) {
+      return str.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m));
+    }
+    function levelQuestions(level) {
+      return QUESTIONS.filter((q) => q.level === level);
+    }
+    function currentQuestion() {
+      const qs = levelQuestions(LEVELS[testState.levelIndex]);
+      return qs[testState.qInLevel] || null;
+    }
+    function stopSpeech() {
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    }
+
+    /* ===================== Language (ES / EN) ===================== */
+    function applyLang() {
+      document.documentElement.lang = testState.lang;
+      document.title = t('meta.title');
+
+      document.querySelectorAll('[data-i18n]').forEach((el) => {
+        el.textContent = t(el.getAttribute('data-i18n'));
+      });
+      document.querySelectorAll('[data-i18n-ph]').forEach((el) => {
+        el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph')));
+      });
+      document.querySelectorAll('[data-i18n-aria]').forEach((el) => {
+        el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria')));
+      });
+      document.querySelectorAll('.lang-toggle button').forEach((btn) => {
+        btn.setAttribute('aria-pressed', String(btn.getAttribute('data-lang') === testState.lang));
+      });
+
+      // Dynamic chrome that depends on the current language
+      if (!$('test-screen').hidden) {
+        updateBadges();
+        renderTimer();
+        renderProgress();
+        renderPlays();
+        updateInstruction();
+        refreshVoiceUI();
+      }
+      if (!$('results-screen').hidden && lastResult) fillResultsPlaceholder(lastResult.level, lastResult.scores);
+    }
+
+    function setLang(lang) {
+      testState.lang = LANGS.includes(lang) ? lang : 'es';
+      try { localStorage.setItem('nextspeak-lang-v1', testState.lang); } catch (e) { /* private mode */ }
+      applyLang();
+    }
+
+    /* ===================== Welcome form ===================== */
+    function showFieldError(inputId, errorId, message) {
+      const input = $(inputId);
+      const error = $(errorId);
+      if (message) {
+        input.setAttribute('aria-invalid', 'true');
+        error.textContent = message;
+        error.classList.add('is-visible');
+      } else {
+        input.removeAttribute('aria-invalid');
+        error.textContent = '';
+        error.classList.remove('is-visible');
+      }
+    }
+
+    function startFromForm(event) {
+      event.preventDefault();
+      const name = $('name-input').value.trim();
+      const email = $('email-input').value.trim();
+      let ok = true;
+      let firstInvalid = null;
+
+      if (!name) {
+        showFieldError('name-input', 'name-error', t('form.errName'));
+        ok = false; firstInvalid = firstInvalid || $('name-input');
+      } else {
+        showFieldError('name-input', 'name-error', null);
+      }
+
+      if (!email) {
+        showFieldError('email-input', 'email-error', t('form.errEmailReq'));
+        ok = false; firstInvalid = firstInvalid || $('email-input');
+      } else if (!EMAIL_RE.test(email)) {
+        showFieldError('email-input', 'email-error', t('form.errEmailInv'));
+        ok = false; firstInvalid = firstInvalid || $('email-input');
+      } else {
+        showFieldError('email-input', 'email-error', null);
+      }
+
+      if (!ok) { if (firstInvalid) firstInvalid.focus(); return; }
+      startTest(name, email);
+    }
+
+    /* ===================== Test flow ===================== */
+    function startTest(name, email) {
+      stopSpeech();
+      clearInterval(testState.timerId);
+
+      testState.name = name;
+      testState.email = email;
+      testState.levelIndex = 0;
+      testState.qInLevel = 0;
+      testState.levelCorrect = 0;
+      testState.answered = 0;
+      testState.scores = [];
+      testState.selected = null;
+      testState.playsLeft = PLAYS_PER_QUESTION;
+      testState.timeLeft = TOTAL_SECONDS;
+      testState.running = true;
+      lastResult = null;
+
+      $('welcome-screen').hidden = true;
+      $('results-screen').hidden = true;
+      $('test-screen').hidden = false;
+
+      renderQuestion();
+      renderTimer();
+      renderProgress();
+
+      clearInterval(testState.timerId);
+      testState.timerId = setInterval(tick, 1000);
+    }
+
+    function updateBadges() {
+      const q = currentQuestion();
+      if (!q) return;
+      const skillBadge = $('skill-badge');
+      skillBadge.textContent = t(q.skill === 'listening' ? 'test.listening' : 'test.reading');
+      skillBadge.className = 'badge ' + (q.skill === 'listening' ? 'badge-listening' : 'badge-reading');
+      $('level-badge').textContent = format(t('test.level'), { level: LEVELS[testState.levelIndex] });
+    }
+
+    function updateInstruction() {
+      const q = currentQuestion();
+      if (!q) return;
+      const key = q.skill === 'listening' ? 'test.listenInstruction' : 'test.readPassage';
+      $('instruction').setAttribute('data-i18n', key);
+      $('instruction').textContent = t(key);
+    }
+
+    function renderQuestion() {
+      const q = currentQuestion();
+      if (!q) return;
+
+      stopSpeech(); // never keep audio from the previous question playing
+      testState.selected = null;
+      testState.playsLeft = PLAYS_PER_QUESTION;
+
+      updateBadges();
+      updateInstruction();
+
+      // Reading shows the passage; listening NEVER shows the script.
+      const passageEl = $('passage');
+      if (q.skill === 'reading') {
+        passageEl.textContent = q.passage;
+        passageEl.hidden = false;
+      } else {
+        passageEl.textContent = '';
+        passageEl.hidden = true;
+      }
+      $('listening-box').hidden = q.skill !== 'listening';
+
+      $('question-text').textContent = q.question;
+
+      // Options (content in English, rebuilt every question)
+      const optionsEl = $('options');
+      optionsEl.textContent = '';
+      const letters = ['A', 'B', 'C', 'D'];
+      q.options.forEach((text, i) => {
+        const label = document.createElement('label');
+        label.className = 'option';
+
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'answer';
+        input.value = String(i);
+
+        const letter = document.createElement('span');
+        letter.className = 'opt-letter';
+        letter.textContent = letters[i] || '•';
+
+        const span = document.createElement('span');
+        span.className = 'opt-text';
+        span.textContent = text;
+
+        label.appendChild(input);
+        label.appendChild(letter);
+        label.appendChild(span);
+        optionsEl.appendChild(label);
+      });
+
+      $('next-btn').disabled = true;
+      $('select-hint').hidden = false;
+
+      if (q.skill === 'listening') {
+        renderPlays();
+        refreshVoiceUI();
+      }
+      $('question-block').focus();
+    }
+
+    function selectOption() {
+      const checked = document.querySelector('#options input:checked');
+      const optionsEl = $('options');
+      optionsEl.querySelectorAll('.option').forEach((label) => label.classList.remove('is-selected'));
+      if (!checked) {
+        testState.selected = null;
+        $('next-btn').disabled = true;
+        $('select-hint').hidden = false;
+        return;
+      }
+      testState.selected = Number(checked.value);
+      checked.closest('.option').classList.add('is-selected');
+      $('next-btn').disabled = false;
+      $('select-hint').hidden = true;
+    }
+
+    function nextQuestion() {
+      if (testState.selected === null || !testState.running) return;
+      const q = currentQuestion();
+      if (!q) return;
+
+      stopSpeech();
+
+      if (testState.selected === q.correctIndex) testState.levelCorrect += 1;
+      testState.answered += 1;
+
+      testState.qInLevel += 1;
+      const qs = levelQuestions(LEVELS[testState.levelIndex]);
+
+      if (testState.qInLevel >= qs.length) {
+        evaluateLevel();
+      } else {
+        renderQuestion();
+        renderProgress();
+      }
+    }
+
+    function evaluateLevel() {
+      const level = LEVELS[testState.levelIndex];
+      const correct = testState.levelCorrect;
+      const passed = correct >= PASS_MARK;
+
+      testState.scores.push({ level, correct, total: 4, passed });
+
+      if (!passed) {
+        endTest('level-failed');
+        return;
+      }
+
+      // Level passed → climb the ladder (or finish after C2)
+      testState.levelIndex += 1;
+      testState.qInLevel = 0;
+      testState.levelCorrect = 0;
+
+      if (testState.levelIndex >= LEVELS.length) {
+        endTest('completed');
+      } else {
+        renderQuestion();
+        renderProgress();
+      }
+    }
+
+    function renderProgress() {
+      const percent = Math.round((testState.answered / QUESTIONS.length) * 100);
+      $('progress-fill').style.width = percent + '%';
+      $('progress-bar').setAttribute('aria-valuenow', String(percent));
+      $('question-counter').textContent = format(t('test.question'), {
+        n: Math.min(testState.answered + 1, QUESTIONS.length),
+        total: QUESTIONS.length
+      });
+    }
+
+    /* ===================== Timer ===================== */
+    function renderTimer() {
+      const total = Math.max(0, testState.timeLeft);
+      const mm = String(Math.floor(total / 60)).padStart(2, '0');
+      const ss = String(total % 60).padStart(2, '0');
+      $('timer-value').textContent = mm + ':' + ss;
+      $('timer').classList.toggle('is-warning', total <= 120);
+    }
+
+    function tick() {
+      testState.timeLeft -= 1;
+      if (testState.timeLeft <= 0) {
+        testState.timeLeft = 0;
+        renderTimer();
+        endTest('timeout'); // final level = last fully passed level
+        return;
+      }
+      renderTimer();
+    }
+
+    /* ===================== Listening (SpeechSynthesis) ===================== */
+    function englishVoice() {
+      if (!('speechSynthesis' in window)) return null;
+      const voices = window.speechSynthesis.getVoices() || [];
+      if (!voices.length) return null; // not loaded yet
+      return voices.find((v) => /^en[-_]US/i.test(v.lang)) ||
+             voices.find((v) => /^en/i.test(v.lang)) ||
+             null;
+    }
+
+    /* 'ok' | 'unsupported' | 'no-voice' */
+    function voiceStatus() {
+      if (!('speechSynthesis' in window)) return 'unsupported';
+      const voices = window.speechSynthesis.getVoices() || [];
+      if (voices.length === 0) return 'ok';           // still loading — decide at play time
+      return englishVoice() ? 'ok' : 'no-voice';
+    }
+
+    function refreshVoiceUI() {
+      const status = voiceStatus();
+      const errorEl = $('voice-error');
+      const playBtn = $('play-btn');
+      if (status === 'ok') {
+        errorEl.hidden = true;
+        playBtn.disabled = testState.playsLeft <= 0;
+      } else {
+        errorEl.textContent = t(status === 'unsupported' ? 'test.noSupport' : 'test.noVoice');
+        errorEl.hidden = false;
+        playBtn.disabled = true;
+      }
+    }
+
+    function renderPlays() {
+      const info = $('plays-info');
+      if (testState.playsLeft > 0) {
+        info.textContent = format(t('test.plays'), { n: testState.playsLeft });
+        $('play-btn').disabled = false;
+      } else {
+        info.textContent = t('test.noPlays');
+        $('play-btn').disabled = true;
+      }
+      refreshVoiceUI();
+    }
+
+    function playAudio() {
+      const q = currentQuestion();
+      if (!q || q.skill !== 'listening' || testState.playsLeft <= 0) return;
+
+      const voice = englishVoice();
+      if (!voice) { refreshVoiceUI(); return; }
+
+      const utter = new SpeechSynthesisUtterance(q.script);
+      utter.lang = 'en-US';
+      utter.rate = 0.9;
+      utter.voice = voice;
+
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utter);
+
+      testState.playsLeft -= 1;
+      renderPlays();
+    }
+
+    /* ===================== End of test ===================== */
+    function computeFinalLevel(scores) {
+      const passed = (scores || []).filter((s) => s.passed);
+      return passed.length ? passed[passed.length - 1].level : 'Pre-A1';
+    }
+
+    function endTest(reason) {
+      if (!testState.running) return;
+      testState.running = false;
+      clearInterval(testState.timerId);
+      stopSpeech();
+
+      const finalLevel = computeFinalLevel(testState.scores);
+
+      const payload = {
+        name: testState.name,
+        email: testState.email,
+        finalLevel,
+        scores: testState.scores.map((s) => ({ ...s })),
+        reason,                                   // 'level-failed' | 'timeout' | 'completed'
+        answered: testState.answered,
+        remainingSeconds: testState.timeLeft,
+        lang: testState.lang,
+        finishedAt: new Date().toISOString(),
+        source: 'placement-test'
+      };
+
+      showResults(finalLevel, testState.scores);  // ← placeholder (Prompt 3)
+      sendToSheet(payload);                       // ← placeholder (Google Sheets)
+    }
+
+    /* =====================================================================
+       PLACEHOLDER — do not build yet.
+       Prompt 3 will render the full results screen (level, per-level
+       scores, share/retake actions, etc.).
+    ===================================================================== */
+    function showResults(finalLevel, scores) {
+      console.log('[placement-test] showResults() placeholder →', { finalLevel, scores });
+      lastResult = { level: finalLevel, scores };
+
+      $('test-screen').hidden = true;
+      $('welcome-screen').hidden = true;
+      $('results-screen').hidden = false;
+      fillResultsPlaceholder(finalLevel, scores);
+      $('results-screen').scrollIntoView({ block: 'start' });
+    }
+
+    function fillResultsPlaceholder(finalLevel, scores) {
+      $('results-note').textContent = format(t('results.note'), { level: finalLevel });
+      $('results-debug').textContent =
+        'showResults(finalLevel, scores)\n\n' +
+        'finalLevel: ' + JSON.stringify(finalLevel) + '\n' +
+        'scores: ' + JSON.stringify(scores, null, 2);
+    }
+
+    /* =====================================================================
+       PLACEHOLDER — Google Sheets integration comes in a later step.
+       Real implementation will POST `payload` to the Apps Script webhook.
+    ===================================================================== */
+    function sendToSheet(payload) {
+      console.log('[placement-test] sendToSheet() placeholder →', payload);
+    }
+
+    /* ===================== Init ===================== */
+    (function init() {
+      // Remembered language, default Spanish
+      let savedLang = null;
+      try { savedLang = localStorage.getItem('nextspeak-lang-v1'); } catch (e) { /* ignore */ }
+      testState.lang = LANGS.includes(savedLang) ? savedLang : 'es';
+
+      // On file:// the brand should not navigate away
+      if (location.protocol === 'file:') $('brand').removeAttribute('href');
+
+      // Voice list loads asynchronously in Chrome/Edge
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.onvoiceschanged = () => {
+          if (!$('test-screen').hidden) refreshVoiceUI();
+        };
+      }
+
+      document.querySelectorAll('.lang-toggle button').forEach((btn) => {
+        btn.addEventListener('click', () => setLang(btn.getAttribute('data-lang')));
+      });
+      $('start-form').addEventListener('submit', startFromForm);
+      $('options').addEventListener('change', selectOption);
+      $('next-btn').addEventListener('click', nextQuestion);
+      $('play-btn').addEventListener('click', playAudio);
+
+      applyLang();
+    })();
+
+    /* Debug handle (safe to remove): inspect the state from the console. */
+    window.placementTest = {
+      get state() { return testState; },
+      setLang, endTest, showResults, sendToSheet, computeFinalLevel
+    };
+  </script>
+</body>
+</html>
