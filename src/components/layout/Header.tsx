@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { BookOpen, Home, LineChart, Menu, X } from 'lucide-react';
 
 import { LanguageToggle } from '@/components/LanguageToggle';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useLanguage } from '@/components/LanguageProvider';
 import { cn } from '@/lib/utils';
 import type { TKey } from '@/lib/i18n';
@@ -87,6 +88,8 @@ export function Header() {
           </div>
 
           <LanguageToggle />
+
+          <ThemeToggle />
 
           <button
             type="button"

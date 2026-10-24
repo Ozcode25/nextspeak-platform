@@ -52,10 +52,18 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: '#0ea5e9',
+  colorScheme: 'light dark',
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
 };
+
+/**
+ * Pre-paint theme script: applies the `dark` class before the page renders so
+ * dark-mode users never see a flash of light. Keep the storage key in sync with
+ * `THEME_STORAGE_KEY` in `src/components/ThemeProvider.tsx`.
+ */
+const themeInitScript = `try{var t=localStorage.getItem('nextspeak-theme-v1');if(t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}`;
 
 export default function RootLayout({
   children,
@@ -63,8 +71,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${montserrat.variable} antialiased`}>
+    // suppressHydrationWarning: the inline script above may add/remove the
+    // `dark` class on <html> before React hydrates.
+    <html
+      lang="en"
+      className={`${montserrat.variable} antialiased`}
+      suppressHydrationWarning
+    >
       <body className="flex min-h-screen flex-col bg-gray-50 font-sans text-gray-900 dark:bg-gray-950 dark:text-gray-50">
+        {/* Applies the saved theme before first paint (no flash of the wrong mode). */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-primary-600 focus:px-4 focus:py-2 focus:text-white"

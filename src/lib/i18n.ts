@@ -22,6 +22,8 @@ const en = {
   'menu.open': 'Open menu',
   'menu.close': 'Close menu',
   'lang.label': 'Language',
+  'theme.toDark': 'Switch to dark mode',
+  'theme.toLight': 'Switch to light mode',
 
   // Footer
   'footer.tagline':
@@ -211,6 +213,8 @@ const es: Record<TKey, string> = {
   'menu.open': 'Abrir menú',
   'menu.close': 'Cerrar menú',
   'lang.label': 'Idioma',
+  'theme.toDark': 'Cambiar a modo oscuro',
+  'theme.toLight': 'Cambiar a modo claro',
 
   // Footer
   'footer.tagline':
